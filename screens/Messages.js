@@ -19,6 +19,7 @@ import Chat from './ChatScreen';
 import { HeaderButton } from '../constants/Buttons';
 import SideMenu from 'react-native-side-menu';
 import LoginScreen from './LoginScreen';
+import SlideMenu from '../navigation/Slider';
 
 
 
@@ -90,6 +91,7 @@ class Messages extends React.Component {
     this._bootstrapAsync();
     this._getData = this._getData.bind(this);
     this._setChatid = this._setChatid.bind(this);
+    this._tooglePane = this._tooglePane.bind(this);
     // this._callChat = this._callChat.bind(this);
   }
 
@@ -141,7 +143,8 @@ class Messages extends React.Component {
     }
     await this.setState({chatid: chat});
     await this.setState({mate: {f_name: username, avatar: ava, id: user}});
-    await this.setState({showMessages: true});
+    this._tooglePane();
+    
   }
   
 
@@ -170,78 +173,106 @@ class Messages extends React.Component {
     });
   }
 
+  _tooglePane() {
+    this.setState({showMessages: !this.state.showMessages});
+    this.forceUpdate();
+  }
+
   render() {
+    // var SlideMenu = require('../components/slide-menu')
+    // , Filters = require('./filters')
+    // , Products = require('./products');
+
+
     var deviceScreen= Dimensions.get('window');
+
     return (
-      <SideMenu
-        autoClosing={false}
-        menuPosition={'right'}
-        menu={<View style={{backgroundColor: '#fff', flex: 1}}>
-        <ScrollView>
-          {this.state.dataSource && <ListView style={styles.container}
-          dataSource={this.state.dataSource}
-          renderRow={
-            (data) => {
-              var myid = AsyncStorage.getItem('id');
-              var chatid = data.id;
-              var ava = data.data.avatar;
-              var username = data.data.f_name;
-              var mateid = data.user1 === myid ? data.user2 : data.user1;
-              var sender = data.data.lstmsg.sender === myid ? 'You' : data.data.f_name; 
-            
-              const timeFinder = (t) => {
-                  if (t) {
-                      var s = t.split(" ");
-                      var x = s[1].split(":");
-                      return x[0] + ":" + x[1];
-                  }        
-              }
-              const dateFinder = (t) => {
-                  if (t) {
-                      var s = t.split(" ");
-                      var x = s[0].split("-");
-                      return x[2] + "." + x[1];
-                  }        
-              }
-              var now = new Date();
-              var then = new Date(data.data.lstmsg.date)
-              var day = then.getUTCDay() === now.getUTCDay() ? false :
-                  then.getUTCDay() === now.getUTCDay() - 1 ? 'Yesterday' :
-                      dateFinder(data.data.lstmsg.date);
-              var date = timeFinder(data.data.lstmsg.date);
-            
-              return (
-                  <TouchableHighlight
-                    onPress={() => this._setChatid(chatid, mateid, ava, username)}>
-                      <View style={ styles.container } >
-                        <Image source={{ uri: data.data.avatar ? 
-                        'http://lastminprod.com/Matcha/uploads/' + data.data.avatar : 
-                        'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png' }} 
-                        style={styles.pictureSm} />
-                          <View style={ styles.msgPrev }>
-                            <Text style={styles.msgName}>{ data.data.f_name }</Text>
-                            <Text style={styles.msgTsender}><Text style={{fontStyle: 'italic'}}>{ sender }</Text>: { data.data.lstmsg.msg }</Text>
+      <SlideMenu
+        renderLeftView = {(
+          <View style={{backgroundColor: '#fff', flex: 1}}>
+            <ScrollView>
+              {this.state.dataSource && <ListView style={styles.container}
+              dataSource={this.state.dataSource}
+              renderRow={
+                (data) => {
+                  var myid = AsyncStorage.getItem('id');
+                  var chatid = data.id;
+                  var ava = data.data.avatar;
+                  var username = data.data.f_name;
+                  var mateid = data.user1 === myid ? data.user2 : data.user1;
+                  var sender = data.data.lstmsg.sender === myid ? 'You' : data.data.f_name; 
+                
+                  const timeFinder = (t) => {
+                      if (t) {
+                          var s = t.split(" ");
+                          var x = s[1].split(":");
+                          return x[0] + ":" + x[1];
+                      }        
+                  }
+                  const dateFinder = (t) => {
+                      if (t) {
+                          var s = t.split(" ");
+                          var x = s[0].split("-");
+                          return x[2] + "." + x[1];
+                      }        
+                  }
+                  var now = new Date();
+                  var then = new Date(data.data.lstmsg.date)
+                  var day = then.getUTCDay() === now.getUTCDay() ? false :
+                      then.getUTCDay() === now.getUTCDay() - 1 ? 'Yesterday' :
+                          dateFinder(data.data.lstmsg.date);
+                  var date = timeFinder(data.data.lstmsg.date);
+                
+                  return (
+                      <TouchableHighlight
+                        onPress={() => this._setChatid(chatid, mateid, ava, username)}>
+                          <View style={ styles.container } >
+                            <Image source={{ uri: data.data.avatar ? 
+                            'http://lastminprod.com/Matcha/uploads/' + data.data.avatar : 
+                            'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png' }} 
+                            style={styles.pictureSm} />
+                              <View style={ styles.msgPrev }>
+                                <Text style={styles.msgName}>{ data.data.f_name }</Text>
+                                <Text style={styles.msgTsender}><Text style={{fontStyle: 'italic'}}>{ sender }</Text>: { data.data.lstmsg.msg }</Text>
+                              </View>
+                            <Text style={styles.msgDate}>{ day ? day : date }</Text>
                           </View>
-                        <Text style={styles.msgDate}>{ day ? day : date }</Text>
-                      </View>
-                    </TouchableHighlight>
-                  );
-                }
-              }/>}
-          </ScrollView>
-        </View>
-        }
-        isOpen={this.state.showMessages}
-        openMenuOffset={deviceScreen.width}
-        edgeHitWidth={150}
-        >
-          <Chat />
-      </SideMenu>  
+                        </TouchableHighlight>
+                      );
+                    }
+                  }/>}
+              </ScrollView>
+            </View>
+          )}
+        renderCenterView = {<Chat />} />
     );
+
+
+
+    // return (
+    //   <SideMenu
+    //     isOpen={this.state.showMessages}
+    //     autoClosing={false}
+    //     menuPosition={'left'}
+    //     menu={
+        
+        // }
+        
+        // openMenuOffset={deviceScreen.width}
+        // edgeHitWidth={150}
+        // >
+
+          // <Chat />
+      // </SideMenu>  
+    // );
   }
 }
 
 const styles = StyleSheet.create({
+  msgPane: {
+    flex: 1,
+    backgroundColor: '#aaa',
+  },
   container: {
     flex: 1,
     padding: 7,

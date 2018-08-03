@@ -267,7 +267,7 @@ class Chat extends React.Component {
             var username = this.state.data['f_name'];
         }
         if (!this.state.viewId) {
-            return <Text>Hello</Text>;
+            return <View style={ styles.container }><Text>Hello World</Text></View>
         }
         return (
             <View>
@@ -307,10 +307,28 @@ const MessagesBody = (props) => {
 }
 
 const styles = StyleSheet.create({
+    msgPane: {
+      flex: 1,
+      backgroundColor: '#aaa',
+    },
+    container: {
+        position: 'absolute',
+        top: 0,
+        flex: 1,
+        padding: 7,
+        marginTop: 1,
+        // height: 90,
+        width: 108 + '%',
+        borderColor: '#555',
+        borderBottomWidth: 0.2,
+    
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+    },
     photo: {
         width: 35,
         height: 35,
-    }
+    },
 });
 
 export default Chat
