@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "horus",
-    "description": "A very interesting project.",
+    "description": "Secure chat.",
     "slug": "horus",
     "privacy": "public",
     "sdkVersion": "29.0.0",
@@ -17,11 +17,12 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
+	  "bundleIdentifier": "com.mvaskiv.horus",
       "supportsTablet": true
+    },
+	"android": {
+	  "package": "com.mvaskiv.horus"
     }
   }
 }

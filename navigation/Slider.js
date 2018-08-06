@@ -1,19 +1,20 @@
 import React, { Component } from "react";
 import {
-    Animation,
+    Animated,
+    Easing,
     PanResponder,
     StyleSheet,
     View
 } from 'react-native';
+import Messages from '../screens/Messages';
 var createReactClass = require('create-react-class');
-// var React = require('react-native')
 
 var Dimensions = require('Dimensions')
 var screenWidth = Dimensions.get('window').width
 
 var SlideMenu = createReactClass({
   componentWillMount: function() {
-    this.offset = 0 // Contains the center view offset from the left edge
+    this.offset = screenWidth // Contains the center view offset from the left edge
     this._panGesture = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
         return Math.abs(gestureState.dx) > Math.abs(gestureState.dy)
@@ -24,6 +25,13 @@ var SlideMenu = createReactClass({
       onPanResponderRelease: this.moveFinished,
       onPanResponderTerminate: this.moveFinished,
     })
+  },
+
+  componentWillReceiveProps: function() {
+    if (this.offset >= screenWidth && this.props.open) {
+      this.offset = 0;
+      this.props.onClose();
+      }
   },
 
   moveCenterView: function(left) {
@@ -44,8 +52,8 @@ var SlideMenu = createReactClass({
     var offset = this.offset + this.left
 
     if (this.offset === 0) {
-      if (offset > screenWidth * 0.25) {
-        this.offset = screenWidth * 0.75
+      if (offset > screenWidth * 0.35) {
+        this.offset = screenWidth
       }
     } else {
       if (offset < screenWidth * 0.5) {
@@ -53,13 +61,22 @@ var SlideMenu = createReactClass({
       }
     }
 
-    Animation.startAnimation(this.center, 400, 0, 'easeInOut', {'anchorPoint.x': 0, 'position.x': this.offset})
+    // Animated.timing(
+    //   this.center,
+    //   {
+    //     toValue: 100,
+    //     duration: 12000,
+    //     easing: Easing.linear
+    //   }
+    // ).start();
+
+    // Animation.startAnimation(this.center, 400, 0, 'easeInOut', {'anchorPoint.x': 0, 'position.x': this.offset})
     this.center.setNativeProps({left: this.offset})
   },
 
   render: function() {
-    var centerView = this.props.renderCenterView ? this.props.renderCenterView() : null
-    var leftView = this.props.renderLeftView ? this.props.renderLeftView() : null
+    var centerView = this.props.renderCenterView ? this.props.renderCenterView : null
+    var leftView = this.props.renderLeftView ? this.props.renderLeftView : null
 
     return (
       <View style={[styles.container, this.props.style]}>
@@ -83,6 +100,11 @@ var styles = StyleSheet.create({
   },
   center: {
     flex: 1,
+    borderWidth: 1,
+    borderLeftColor: '#ddd',
+    borderTopColor: '#FFFFFF',
+    borderRightColor: '#FFFFFF',
+    borderBottomColor: '#FFFFFF',
     backgroundColor: '#FFFFFF',
   },
   left: {
@@ -95,4 +117,4 @@ var styles = StyleSheet.create({
   },
 })
 
-module.exports = SlideMenu
+export default SlideMenu

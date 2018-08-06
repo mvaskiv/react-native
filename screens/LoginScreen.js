@@ -112,7 +112,6 @@ const styles = StyleSheet.create({
     top: 120,
     marginTop: 10,
     paddingLeft: 20,
-    height: 80,
     fontSize: 18,
     height: 50,
     backgroundColor: '#eee',

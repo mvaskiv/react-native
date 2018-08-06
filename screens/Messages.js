@@ -21,55 +21,6 @@ import SideMenu from 'react-native-side-menu';
 import LoginScreen from './LoginScreen';
 import SlideMenu from '../navigation/Slider';
 
-
-
-// const ChatListItem = (props) => {
-//   var myid = AsyncStorage.getItem('id');
-//   var chatid = props.id;
-//   var ava = props.data.avatar;
-//   var username = props.data.f_name;
-//   var mateid = props.user1 === myid ? props.user2 : props.user1;
-//   var sender = props.data.lstmsg.sender === myid ? 'You' : props.data.f_name; 
-
-//   const timeFinder = (t) => {
-//       if (t) {
-//           var s = t.split(" ");
-//           var x = s[1].split(":");
-//           return x[0] + ":" + x[1];
-//       }        
-//   }
-//   const dateFinder = (t) => {
-//       if (t) {
-//           var s = t.split(" ");
-//           var x = s[0].split("-");
-//           return x[2] + "." + x[1];
-//       }        
-//   }
-//   var now = new Date();
-//   var then = new Date(props.data.lstmsg.date)
-//   var day = then.getUTCDay() === now.getUTCDay() ? false :
-//       then.getUTCDay() === now.getUTCDay() - 1 ? 'Yesterday' :
-//           dateFinder(props.data.lstmsg.date);
-//   var date = timeFinder(props.data.lstmsg.date);
-
-//   return (
-//     <TouchableHighlight
-//     onPress={() => Messages._setChatid(chatid, mateid, ava, username)}>
-//       <View style={ styles.container } >
-//         <Image source={{ uri: props.data.avatar ? 
-//         'http://lastminprod.com/Matcha/uploads/' + props.data.avatar : 
-//         'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png' }} 
-//         style={styles.pictureSm} />
-//           <View style={ styles.msgPrev }>
-//             <Text style={styles.msgName}>{ props.data.f_name }</Text>
-//             <Text style={styles.msgTsender}><Text style={{fontStyle: 'italic'}}>{ sender }</Text>: { props.data.lstmsg.msg }</Text>
-//           </View>
-//         <Text style={styles.msgDate}>{ day ? day : date }</Text>
-//       </View>
-//     </TouchableHighlight>
-//   );
-// }
-
 class Messages extends React.Component {
   constructor(props) {
     super(props);
@@ -91,7 +42,9 @@ class Messages extends React.Component {
     this._bootstrapAsync();
     this._getData = this._getData.bind(this);
     this._setChatid = this._setChatid.bind(this);
+    // Messages._tooglePane = Messages._tooglePane.bind(this);
     this._tooglePane = this._tooglePane.bind(this);
+    
     // this._callChat = this._callChat.bind(this);
   }
 
@@ -144,11 +97,7 @@ class Messages extends React.Component {
     await this.setState({chatid: chat});
     await this.setState({mate: {f_name: username, avatar: ava, id: user}});
     this._tooglePane();
-    
   }
-  
-
-  
 
   _getData = () => {
     let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
@@ -173,8 +122,8 @@ class Messages extends React.Component {
     });
   }
 
-  _tooglePane() {
-    this.setState({showMessages: !this.state.showMessages});
+  async _tooglePane() {
+    await this.setState({showMessages: !this.state.showMessages});
     this.forceUpdate();
   }
 
@@ -185,9 +134,11 @@ class Messages extends React.Component {
 
 
     var deviceScreen= Dimensions.get('window');
-
+    
     return (
       <SlideMenu
+        open = { this.state.showMessages }
+        onClose = { this._tooglePane.bind(this) }
         renderLeftView = {(
           <View style={{backgroundColor: '#fff', flex: 1}}>
             <ScrollView>
@@ -244,27 +195,12 @@ class Messages extends React.Component {
               </ScrollView>
             </View>
           )}
-        renderCenterView = {<Chat />} />
+        renderCenterView = {<Chat
+          id={this.state.chatid}
+          mate={this.state.mate}
+          shown={this.state.showMessages} />}
+        />
     );
-
-
-
-    // return (
-    //   <SideMenu
-    //     isOpen={this.state.showMessages}
-    //     autoClosing={false}
-    //     menuPosition={'left'}
-    //     menu={
-        
-        // }
-        
-        // openMenuOffset={deviceScreen.width}
-        // edgeHitWidth={150}
-        // >
-
-          // <Chat />
-      // </SideMenu>  
-    // );
   }
 }
 
