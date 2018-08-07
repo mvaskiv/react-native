@@ -17,8 +17,8 @@ const ContactLisItem = (props) => {
   return (
     <View style={styles.container}>
       <Image source={{ uri: props.avatar ? 
-        'http://lastminprod.com/Matcha/uploads/' + props.avatar : 
-        'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png' }} 
+        'https://mvaskiv.herokuapp.com/Matcha/uploads/' + props.avatar : 
+        'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
         style={styles.photo} />
       <Text style={styles.text}>
         {`${props.f_name} ${props.l_name}`}

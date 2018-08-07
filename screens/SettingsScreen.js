@@ -5,7 +5,7 @@ import App from '../App';
 
 export default class SettingsScreen extends React.Component {
   static navigationOptions = {
-    title: 'app.json',
+    title: 'Settings',
   };
 
   async _Logout() {

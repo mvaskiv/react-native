@@ -1,13 +1,14 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
+import { createSwitchNavigator, createBottomTabNavigator } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
 import HomeScreen from '../screens/HomeScreen';
 import Messages from '../screens/Messages';
+
 import SettingsScreen from '../screens/SettingsScreen';
 
-const HomeStack = createStackNavigator({
+const HomeStack = createSwitchNavigator({
   Home: HomeScreen,
 });
 
@@ -25,8 +26,9 @@ HomeStack.navigationOptions = {
   ),
 };
 
-const LinksStack = createStackNavigator({
-  Links: Messages,
+const LinksStack = createSwitchNavigator({
+  Messages: Messages,
+  
 });
 
 LinksStack.navigationOptions = {
@@ -39,7 +41,7 @@ LinksStack.navigationOptions = {
   ),
 };
 
-const SettingsStack = createStackNavigator({
+const SettingsStack = createSwitchNavigator({
   Settings: SettingsScreen,
 });
 
@@ -54,7 +56,8 @@ SettingsStack.navigationOptions = {
 };
 
 export default createBottomTabNavigator({
-  LinksStack,
+  // LinksStack: { screen: LinksStack, navigationOptions:{tabBarVisible: false} },
+  LinksStack,    
   HomeStack,
   SettingsStack,
 }, {

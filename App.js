@@ -79,10 +79,6 @@ export default class App extends React.Component {
       return (
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <Chat 
-                id={this.state.chatid}
-                mate={this.state.mate}
-                shown={this.state.showMessages} />
           <AppNavigator />
         </View>
       );

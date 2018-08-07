@@ -27,7 +27,6 @@ class Messages extends React.Component {
     const ds = new ListView.DataSource({
       rowHasChanged: (r1, r2) => r1 !== r2
     });
-    
     this.state = {
       dataSource: null,
       chats: false,
@@ -50,6 +49,7 @@ class Messages extends React.Component {
 
   static navigationOptions = {
     title: 'Messages',
+    tabBarVisible: false,
     headerRight: (
       <HeaderButton
         side="right"
@@ -123,7 +123,12 @@ class Messages extends React.Component {
   }
 
   async _tooglePane() {
-    await this.setState({showMessages: !this.state.showMessages});
+    // await this.setState({showMessages: !this.state.showMessages});
+    this.props.navigation.navigate('Chat', {
+      uname: this.state.mate.f_name,
+      id: this.state.chatid,
+      mate: this.state.mate,
+    });
     this.forceUpdate();
   }
 
@@ -136,10 +141,7 @@ class Messages extends React.Component {
     var deviceScreen= Dimensions.get('window');
     
     return (
-      <SlideMenu
-        open = { this.state.showMessages }
-        onClose = { this._tooglePane.bind(this) }
-        renderLeftView = {(
+  
           <View style={{backgroundColor: '#fff', flex: 1}}>
             <ScrollView>
               {this.state.dataSource && <ListView style={styles.container}
@@ -177,10 +179,10 @@ class Messages extends React.Component {
                   return (
                       <TouchableHighlight
                         onPress={() => this._setChatid(chatid, mateid, ava, username)}>
-                          <View style={ styles.container } >
+                          <View style={ styles.MSGcontainer } >
                             <Image source={{ uri: data.data.avatar ? 
-                            'http://lastminprod.com/Matcha/uploads/' + data.data.avatar : 
-                            'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png' }} 
+                            'https://mvaskiv.herokuapp.com/Matcha/uploads/' + data.data.avatar : 
+                            'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
                             style={styles.pictureSm} />
                               <View style={ styles.msgPrev }>
                                 <Text style={styles.msgName}>{ data.data.f_name }</Text>
@@ -194,12 +196,8 @@ class Messages extends React.Component {
                   }/>}
               </ScrollView>
             </View>
-          )}
-        renderCenterView = {<Chat
-          id={this.state.chatid}
-          mate={this.state.mate}
-          shown={this.state.showMessages} />}
-        />
+          
+
     );
   }
 }
@@ -212,11 +210,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 7,
-    marginTop: 1,
+  
+    // height: 90,
+    // width: 108 + '%',
+  
+
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+  },
+  MSGcontainer: {
+    flex: 1,
+    padding: 7,
+    top: -6,
+    marginTop: 10,
     // height: 90,
     width: 108 + '%',
-    borderColor: '#555',
-    borderBottomWidth: 0.2,
+    borderColor: '#ccc',
+    borderBottomWidth: 0.7,
 
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -232,13 +242,15 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   pictureSm: {
-    left: 2,
-    width: 65,
-    height: 65,
-    borderRadius: 31.5,
+    top: 0,
+    left: 1,
+    width: 55,
+    height: 55,
+    borderRadius: 28,
   },
   msgPrev: {
     // display: 'flex',
+    top: 0,
     left: 12,
     width: 220,
     // width: 100 + '%',

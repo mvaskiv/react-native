@@ -5,7 +5,10 @@
     "slug": "horus",
     "privacy": "public",
     "sdkVersion": "29.0.0",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -18,11 +21,11 @@
       "fallbackToCacheTimeout": 0
     },
     "ios": {
-	  "bundleIdentifier": "com.mvaskiv.horus",
+      "bundleIdentifier": "com.mvaskiv.horus",
       "supportsTablet": true
     },
-	"android": {
-	  "package": "com.mvaskiv.horus"
+    "android": {
+      "package": "com.mvaskiv.horus"
     }
   }
 }

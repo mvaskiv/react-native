@@ -1,9 +1,9 @@
 {
   "devToolsPort": 19002,
-  "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 77746,
-  "expoServerNgrokUrl": "https://qd-fv9.mvaskiv.horus-git.exp.direct",
-  "packagerNgrokUrl": "https://packager.qd-fv9.mvaskiv.horus-git.exp.direct",
-  "ngrokPid": 77761
+  "expoServerPort": null,
+  "packagerPort": null,
+  "packagerPid": null,
+  "expoServerNgrokUrl": null,
+  "packagerNgrokUrl": null,
+  "ngrokPid": null
 }

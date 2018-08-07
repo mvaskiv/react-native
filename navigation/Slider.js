@@ -14,6 +14,7 @@ var screenWidth = Dimensions.get('window').width
 
 var SlideMenu = createReactClass({
   componentWillMount: function() {
+    
     this.offset = screenWidth // Contains the center view offset from the left edge
     this._panGesture = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
@@ -62,9 +63,9 @@ var SlideMenu = createReactClass({
     }
 
     // Animated.timing(
-    //   this.center,
+    //   this.offset,
     //   {
-    //     toValue: 100,
+    //     toValue: screenWidth,
     //     duration: 12000,
     //     easing: Easing.linear
     //   }

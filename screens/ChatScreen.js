@@ -17,7 +17,7 @@ import PostData from '../service/post';
 
 var Dimensions = require('Dimensions');
 var screenWidth = Dimensions.get('window').width;
-const keyboardOffset = 88;
+const keyboardOffset = 67;
 
 class Chat extends React.Component {
     constructor(props) {
@@ -36,8 +36,11 @@ class Chat extends React.Component {
             lastCall: false,
             lastChild: false,
             interval: false,
-            messages: false,
+            dataSource: '',
         };
+        this._data = new ListView.DataSource({
+            rowHasChanged: (r1, r2) => r1 !== r2
+        });
         this._bootstrapAsync();
         this._onScroll = this._onScroll.bind(this);
         this._scrollListener = this._scrollListener.bind(this);
@@ -49,8 +52,7 @@ class Chat extends React.Component {
         this.changeView = this.changeView.bind(this);
         this._scrollBtm = this._scrollBtm.bind(this);
         this._msgReceived = this._msgReceived.bind(this);
-        Chat._getMsgTime = Chat._getMsgTime.bind(this);
-        
+        Chat._getMsgTime = Chat._getMsgTime.bind(this);        
     }
 
     _bootstrapAsync = async () => {
@@ -66,9 +68,9 @@ class Chat extends React.Component {
     }
 
     async componentWillReceiveProps() {
-        if ((this.props.id && this.props.mate) && this.props.id !== this.state.viewId) {
-            await this.setState({viewId: this.props.id});
-            await this.setState({data: this.props.mate});
+        if ((this.props.navigation.state.params.id && this.props.navigation.state.params.mate) && this.props.navigation.state.params.id !== this.state.viewId) {
+            await this.setState({viewId: this.props.navigation.state.params.id});
+            await this.setState({data: this.props.navigation.state.params.mate});
             if (this.state.viewId) {
                 await this._getData();
             }
@@ -92,15 +94,13 @@ class Chat extends React.Component {
     }
 
     changeView() {
-        this.setState({viewId: this.props.id});
-        this.setState({data: this.props.mate});
+        this.setState({viewId: this.props.navigation.state.params.id});
+        this.setState({data: this.props.navigation.state.params.mate});
     }
 
     async _getData() {
         await this.changeView()
-        let ds = new ListView.DataSource({
-        rowHasChanged: (r1, r2) => r1 !== r2
-        });
+       
         await fetch('http://lastminprod.com/Matcha/public/msghistory', {
             method: 'POST',
             headers: {
@@ -114,75 +114,56 @@ class Chat extends React.Component {
         .then((response) => response.json())
         .then((res) =>
         {
-            console.log('got data');
+            this.setState({lastChild: res.data[0]['date']});            
             let trueData = res.data.reverse();
-            this.setState({dataSource: ds.cloneWithRows(trueData)});
+            this.setState({dataSource: this._data.cloneWithRows(trueData)});
         })
         .catch((error) => {
             console.error(error);
         });
     }
 
-    // async _getInfo() {
-    //     await this.changeView();
-    //     await PostData('msghistory', this.state).then((result) => {
-    //         let responseJson = result;
-    //         if (responseJson.data) {
-    //             var a = responseJson.data;
-    //             if (a[0]) {
-    //                 this.setState({lastChild: a[0]['date']});
-    //                 a.reverse();
-    //                 // this.msglstc.scscrollTop = (this.msglstc.scrollHeight / this.msglstc.clientHeight * 8) * this.msglstc.scrollTop;
-    //                 this.setState({messages: a});
-    //             }
-    //         }
-    //     });
-    // }
-
     async _getUpdate() {
-        let ds = new ListView.DataSource({
-            rowHasChanged: (r1, r2) => r1 !== r2
-            });
-            await fetch('http://lastminprod.com/Matcha/public/checkmsg', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json',
-                },
-            body: JSON.stringify(
-                this.state
-            )
-            })
-            .then((response) => response.json())
-            .then((res) =>
-            {
-                console.log('got update');
-                if (res.data) {
-
-                        this.setState({lastChild: res.data[0]['date']});
-                        console.log(res.data[0]['date']);
-                        this.setState({updated: true});
-         
-                    let trueData = res.data;
-                    this.setState({dataSource: ds.cloneWithRows(trueData)});
-                }
-            })
-            .catch((error) => {
-                console.error(error);
-            });
-       
+        await fetch('http://lastminprod.com/Matcha/public/msghistory', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+        body: JSON.stringify(
+            this.state
+        )
+        })
+        .then((response) => response.json())
+        .then((res) =>
+        {
+            if (res.data) {
+                this.setState({lastChild: res.data[0]['date']});
+                let trueData = res.data.reverse();
+                // this._data = this._data.concat(trueData);
+                // this.setState({dataSource: this.state.dataSource.cloneWithRows(this._data)});
+                // this.state.dataSource.cloneWithRows(trueData);
+                this.setState({dataSource: this.state.dataSource.cloneWithRows(trueData)});        
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+        await this.setState({updated: true});
         // Messages._updatedDialog();
     }
 
     componentDidMount() {
         if (this.msglst && this.msglst.lastChild) {this.msglst.lastChild.scrollIntoView(!0);}
-        // if (this.props.id && (this.props.id !== this.state.viewId)) {
+        // if (this.props.navigation.state.params.id && (this.props.navigation.state.params.id !== this.state.viewId)) {
         //     this._getData();
         // }
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
-        // this.setState({interval: setInterval(this._getUpdate, 1000)});    
+        // if (this.state.viewId && !this.state.interval) {
+            this.setState({interval: setInterval(this._getUpdate, 1000)});
+        // }
     }
 
     componentWillUnmount() {
@@ -191,19 +172,20 @@ class Chat extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.id && (this.props.id !== this.state.viewId)) {
-            // this._getData();
+        if (this.props.navigation.state.params.id && (this.props.navigation.state.params.id !== this.state.viewId)) {
+            this._getData();
         }
         if (this.state.updated) {
             // this._scrollBtm();
             this.setState({updated: false});
         }
-        if (this.props.shown && !this.state.interval) {
-            this.setState({interval: setInterval(this._getUpdate, 1500)});    
-        } else if (!this.props.shown && this.state.interval) {
-            clearInterval(this.state.interval);
-            this.setState({interval: false});
-        }
+        // console.log(this.state);
+        // if (this.props.shown && !this.state.interval) {
+        //     this.setState({interval: setInterval(this._getData, 1500)});    
+        // } else if (!this.props.shown && this.state.interval) {
+        //     clearInterval(this.state.interval);
+        //     this.setState({interval: false});
+        // }
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
@@ -260,7 +242,6 @@ class Chat extends React.Component {
         .then((response) => response.json())
         .then((res) =>
         {
-            alert(res.status);
             if (res.status === 'ok') {
                 return true;
             } else {
@@ -274,11 +255,9 @@ class Chat extends React.Component {
 
     async _sendMesssage() {
         if (this.state.newMessage) {
-            alert('q');
             var message = {message: this.state.newMessage, sender: this.state.id, s_name: this.state.myname, s_ava: null, chatid: this.state.viewId};
             var messageState = {status: 'msg', to: this.state.data.id, token: this.state.token, id: this.state.id, msg: JSON.stringify(message)};
             if (this._msgToDb(messageState)) {
-                alert('b');
                 this.setState({newMessage: ''});
                 this.setState({updated: true});
             }
@@ -305,35 +284,26 @@ class Chat extends React.Component {
             var username = this.state.data['f_name'];
         }
         if (!this.state.viewId || !this.state.dataSource) {
-            return <View style={ styles.container }><Text>{this.state.viewId}</Text></View>
+            return (
+                <View style={ styles.containerpreloader }>
+                    <Image source={{ uri: "https://i.gifer.com/WHda.gif"}} style={ styles.preloadergif } />
+                </View>
+            )
         }
         return (
-           
-                <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={keyboardOffset} enabled>
+            <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={keyboardOffset} enabled>
                 <ScrollView>
                     {this.state.dataSource && <ListView
-                        ref={msglstc => {this.msglstc = msglstc;}}
+                        ref={ (ref) => this.msglstc = ref}
                         style={ styles.msgPane }
                         dataSource={this.state.dataSource}
+                        onContentSizeChange={ () => {this.msglstc.scrollToEnd({animated: true})}}
                         renderRow={
                             (data) => {
                             return (
                             <MessagesBody {...data} mate={this.state.data} id={this.state.id} />
                             )}
                         }/>}
-
-                        {/* <input
-                        type='text'
-                        className='form-element msg-in'
-                        placeholder='Your message here'
-                        name='newMessage'
-                        value={ this.state.newMessage }
-                        onChange={this.onChange}
-                        onFocus={() => this.InputOnFocus(1)}
-                        onBlur={() => this.InputOnFocus(0)} />
-                    <span onClick={() => this._sendMesssage()} className='form-element-extra msg-snd-btn'><i className="fab fa-telegram-plane"></i></span> */}
-
-                        
                 </ScrollView>
                 <View style={ styles.inputcntbg }>
                     <View style={ styles.inputcnt }>
@@ -353,7 +323,6 @@ class Chat extends React.Component {
                         />
                     </View>
                 </View>
-             
             </KeyboardAvoidingView>
         );
     }
@@ -367,9 +336,8 @@ const MessagesBody = (props) => {
                 ref={msglst => {this.msglst = msglst;}}
                 style={ styles.MSGcontainer }>
                 <Image
-                    source={{ uri: props.mate.avatar ? 'http://lastminprod.com/Matcha/uploads/' + props.mate.avatar : 'http://lastminprod.com/Matcha/uploads/avatar-placeholder.png'}}
-                    style={{ display: props.sender === props.id ? 'none' : 'block' }}
-                    style={ styles.photo }/>
+                    source={{ uri: props.mate.avatar ? 'https://mvaskiv.herokuapp.com/Matcha/uploads/' + props.mate.avatar : 'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png'}}
+                    style={ props.sender === props.id ? styles.nophoto : styles.photo } />
                 <View style={ props.sender === props.id ? styles.sentMsg : styles.receivedMsg }>
                     <Text
                         style={[ styles.msgbody, {color: props.sender === props.id ? '#fff' : '#000' }]} >
@@ -391,6 +359,7 @@ const styles = StyleSheet.create({
       flex: 1,
       width: screenWidth,
       paddingTop: 15,
+      minHeight: Dimensions.get('screen').height - 100,
       paddingBottom: 50,
       backgroundColor: '#ffffff',
     },
@@ -401,7 +370,7 @@ const styles = StyleSheet.create({
         padding: 7,
         marginTop: 1,
         // height: 90,
-        width: 108 + '%',
+        width: screenWidth,
         borderColor: '#555',
         borderBottomWidth: 0.2,
         flexDirection: 'row',
@@ -412,14 +381,20 @@ const styles = StyleSheet.create({
         paddingTop: 15,
         marginTop: 1,
         // height: 90,
+        minHeight: 50,
         width: screenWidth,
         flexDirection: 'row',
         backgroundColor: '#fff',
     },
     photo: {
-        // position: 'absolute',
-        width: 35,
-        height: 35,
+        top: -13,
+        width: 36,
+        height: 36,
+        left: 7,
+        borderRadius: 18,
+    },
+    nophoto: {
+        display: 'none',
     },
     receivedMsg: {
         position: 'absolute',
@@ -503,7 +478,19 @@ const styles = StyleSheet.create({
         width: 45,
         marginRight: 15,
 
-      }
+      },
+      containerpreloader: {
+        flex: 1,
+        width: screenWidth,
+        top: 0,
+        backgroundColor: '#fff',
+      },
+      preloadergif: {
+        top: 170,
+        left: (screenWidth / 2) - 100,
+        width: 200,
+        height: 150,
+      },
 });
 
 export default Chat
