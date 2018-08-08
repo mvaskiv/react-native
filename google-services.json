@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "38522168959",
+    "firebase_url": "https://matcha-212014.firebaseio.com",
+    "project_id": "matcha-212014",
+    "storage_bucket": "matcha-212014.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:38522168959:android:cd8b357881066512",
+        "android_client_info": {
+          "package_name": "com.mvaskiv.horus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "38522168959-aisga9jbor0fnc9ldr2l23v0gs4b1nor.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmUXgYvgZY8VvWI11J0FhX4dc21FKZdW8"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

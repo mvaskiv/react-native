@@ -25,7 +25,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.mvaskiv.horus"
+      "package": "com.mvaskiv.horus",
+      "googleServicesFile": "./google-services.json"
     }
   }
 }
