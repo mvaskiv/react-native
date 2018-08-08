@@ -36,6 +36,8 @@ class Chat extends React.Component {
             lastCall: false,
             lastChild: false,
             interval: false,
+            fbtoken: '',
+            myfbtoken: '',
             dataSource: '',
         };
         this._bootstrapAsync();
@@ -53,11 +55,12 @@ class Chat extends React.Component {
     }
 
     _bootstrapAsync = async () => {
-        const id = await AsyncStorage.getItem('id');
+        const idas = await AsyncStorage.getItem('id');
         const name = await AsyncStorage.getItem('uname');
-
-        await this.setState({id: id});
+        const fb = await AsyncStorage.getItem('myPushToken');
+        await this.setState({id: idas});
         await this.setState({myname: name});
+        await this.setState({myfbtoken: fb});
   
         if (this.state.viewId) {
             await this._getData();
@@ -95,6 +98,34 @@ class Chat extends React.Component {
         this.setState({data: this.props.navigation.state.params.mate});
     }
 
+    _getFbToken = () => {
+        if (this.state.data) {
+            var state = {id: this.state.data.id, action: 'get'};
+            fetch('http://lastminprod.com/Matcha/public/fbtoken', {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(
+                  state
+                )
+              })
+              .then((response) => response.json())
+              .then((res) =>
+              {
+                  console.warn(res);
+                if (res.data) {
+                    
+                    this.setState({fbtoken: res.data});
+                }
+              })
+              .catch((error) => {
+                console.error(error);
+              });
+        }
+    }
+
     async _getData() {
         await this.changeView()
         await fetch('http://lastminprod.com/Matcha/public/msghistory', {
@@ -120,6 +151,7 @@ class Chat extends React.Component {
         .catch((error) => {
             console.error(error);
         });
+        await this._getFbToken();
     }
 
     _getMoreData = () => {
@@ -299,11 +331,38 @@ class Chat extends React.Component {
         });
     }
 
+    _sendFireNoti = (name, msg) => {
+        let URL = 'https://exp.host/--/api/v2/push/send';
+        if (this.state.fbtoken) {
+            return new Promise((resolve, reject) => {
+                fetch(URL, {
+                    method: 'POST',
+                    // mode: 'no-cors',
+                    headers: {
+                        'accept': 'application/json',
+                        'accept-encoding': 'gzip, deflate',
+                        'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({to: this.state.fbtoken, priority: 'high', title: 'Message from ' + name + ':', body: msg, sound: 'default'})
+                })
+                .then((response) => response.json())
+                .then((res) => {
+                    console.log(res);
+                    resolve(res);
+                })
+                .catch((error) => {
+                    reject(error);
+                });
+            });
+        }
+    }
+
     async _sendMesssage() {
         if (this.state.newMessage) {
             var message = {message: this.state.newMessage, sender: this.state.id, s_name: this.state.myname, s_ava: null, chatid: this.state.viewId};
             var messageState = {status: 'msg', to: this.state.data.id, token: this.state.token, id: this.state.id, msg: JSON.stringify(message)};
             if (this._msgToDb(messageState)) {
+                this._sendFireNoti(this.state.myname, this.state.newMessage);
                 this.setState({newMessage: ''});
                 this.setState({updated: true});
             }

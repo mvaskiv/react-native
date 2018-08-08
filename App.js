@@ -1,11 +1,23 @@
 import React from 'react';
 import { Platform, StatusBar, StyleSheet, View, AsyncStorage, Modal, Text, TouchableHighlight } from 'react-native';
-import { AppLoading, Asset, Font, Icon } from 'expo';
+import { AppLoading, Asset, Font, Icon, Notifications } from 'expo';
+// import { config } from './service/fbconfig';
+// import RNFirebase from "react-native-firebase";
+// import { initializePush } from './service/firebase';
 import { isSignedIn } from './service/auth';
 import LoginScreen from './screens/LoginScreen';
 import AppNavigator from './navigation/AppNavigator';
 import Messages from './screens/Messages';
 import Chat from './screens/ChatScreen';
+
+// RNFirebase.initializeApp({
+//   apiKey: "AIzaSyD6jBTtHzY5vtNLdQFbFmXGffoySY24Bxg",
+//   authDomain: "matcha-212014.firebaseapp.com",
+//   databaseURL: "https://matcha-212014.firebaseio.com",
+//   projectId: "matcha-212014",
+//   storageBucket: "matcha-212014.appspot.com",
+//   messagingSenderId: "38522168959"
+// });
 
 export default class App extends React.Component {
   constructor() {
@@ -23,17 +35,26 @@ export default class App extends React.Component {
     App._callChat = App._callChat.bind(this);
     // this._callChat = t
   }
-  
+
   _bootstrapAsync = async () => {
     const id = await AsyncStorage.getItem('id');
     await this.setState({id: id});
+    // this.initializePush();
   }
 
   async componentDidMount() {
     if (!this.state.chatid) {
       this.setState({showMessages: false});
     }
+    if (this.state.id) {
+      this._notificationSubscription = Notifications.addListener(this._handleNotification);
+    }
   }
+
+  _handleNotification = (notification) => {
+    this.setState({notification: notification});
+    console.log(notification);
+  };
 
   static _hideChat() {
     this.setState({showMessages: false});

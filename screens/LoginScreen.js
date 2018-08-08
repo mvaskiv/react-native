@@ -13,9 +13,11 @@ import {
   View,
   AsyncStorage,
 } from 'react-native';
+import { Permissions, Notifications } from 'expo';
 import PostData from '../service/post';
 import { StackNavigator } from "react-navigation";
 import { setTimeout } from 'core-js/library/web/timers';
+const PUSH_ENDPOINT = 'http://lastminprod.com/Matcha/public/pushtoken';
 
 class LoginScreen extends React.Component {
     constructor(props) {
@@ -28,6 +30,55 @@ class LoginScreen extends React.Component {
         };
         this.login = this.login.bind(this);
         this.onChange = this.onChange.bind(this);
+        this.registerForPushNotificationsAsync = this.registerForPushNotificationsAsync.bind(this);
+    }
+
+    async registerForPushNotificationsAsync(id) {
+      const { status: existingStatus } = await Expo.Permissions.getAsync(
+        Expo.Permissions.NOTIFICATIONS
+      );
+      let finalStatus = existingStatus;
+      console.log(finalStatus);
+      // only ask if permissions have not already been determined, because
+      // iOS won't necessarily prompt the user a second time.
+      if (existingStatus !== 'granted') {
+        // Android remote notification permissions are granted during the app
+        // install, so this will only ask on iOS
+        const { status } = await Expo.Permissions.askAsync(Expo.Permissions.NOTIFICATIONS);
+        finalStatus = status;
+      }
+      console.log(finalStatus);
+    
+      // Stop here if the user did not grant permissions
+      if (finalStatus !== 'granted') {
+        return;
+      }
+    
+      // Get the token that uniquely identifies this device
+      let token = await Notifications.getExpoPushTokenAsync();
+      console.log(token);
+      // POST the token to your backend server from where you can retrieve it to send push notifications.
+      let state = {id: id, fbtoken: token, action: 'set'};
+      return fetch('http://lastminprod.com/Matcha/public/fbtoken', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(
+            state
+          )
+        })
+        .then((response) => response.json())
+        .then((res) =>
+        {
+          if (res.status === 'ok') {
+            console.log('token set');
+          }
+        })
+        .catch((error) => {
+          console.error(error);
+        });;
     }
     
     login() {
@@ -45,13 +96,13 @@ class LoginScreen extends React.Component {
                 .then((response) => response.json())
                 .then((res) =>
                 {
-                    var id = res.id;
-                    var token = res.token;
-                    var uname = res.uname;
+                    let id = res.id;
+                    let token = res.token;
+                    let uname = res.uname;
                     AsyncStorage.setItem('id', id)
                         .then(AsyncStorage.setItem('token', token))
-                        .then(AsyncStorage.setItem('uname', uname))
-                        // .then(() => App._Login(1));        
+                        .then(AsyncStorage.setItem('uname', uname));
+                    this.registerForPushNotificationsAsync(id);      
                 })
                 .catch((error) => {
                     console.error(error);
