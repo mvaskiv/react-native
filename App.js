@@ -49,7 +49,7 @@ export default class App extends React.Component {
   componentDidUpdate() {
     isSignedIn()
     .then(res => this.setState({ signedIn: res }))
-    .catch(err => alert("An error occurred"));
+    .catch(err => console.warn(err));
   }
 
   static _Login(a) {
@@ -58,7 +58,7 @@ export default class App extends React.Component {
     } else if (a === 1) {
       isSignedIn()
         .then(res => this.setState({ signedIn: res }))
-        .catch(err => alert("An error occurred"));
+        .catch(err => console.warn(err));
     }
   }
 

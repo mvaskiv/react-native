@@ -4,30 +4,36 @@ import {
   Platform,
   ScrollView,
   ListView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
   AsyncStorage,
 } from 'react-native';
 import PostData from '../service/post';
+import Messages from './Messages';
 import { HeaderButton } from '../constants/Buttons';
 
 const ContactLisItem = (props) => {
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: props.avatar ? 
-        'https://mvaskiv.herokuapp.com/Matcha/uploads/' + props.avatar : 
-        'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
-        style={styles.photo} />
-      <Text style={styles.text}>
-        {`${props.f_name} ${props.l_name}`}
-      </Text>
-    </View>
+    <TouchableWithoutFeedback
+      onPress={() => Messages._setChatid(-42, props.id, props.avatar, props.f_name)}>
+      <View style={styles.container}>
+        <Image source={{ uri: props.avatar ? 
+          'https://mvaskiv.herokuapp.com/Matcha/uploads/' + props.avatar : 
+          'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
+          style={styles.photo} />
+        <Text style={styles.text}>
+          {`${props.f_name} ${props.l_name}`}
+        </Text>
+      </View>
+    </TouchableWithoutFeedback>
   )
 }
 
-class Messages extends React.Component {
+class Contacts extends React.Component {
   constructor(props) {
     super(props);
     const ds = new ListView.DataSource({
@@ -37,12 +43,15 @@ class Messages extends React.Component {
     this.state = {
       search: '',
       start: 0,
+      id: '',
+      token: '',
       start_age: 9,
       end_age: 99,
       sort: 'age',
       number: 15,
       dataSource: null,
     };
+    this._bootstrapAsync();
     this._getData = this._getData.bind(this);
   }
 
@@ -55,15 +64,19 @@ class Messages extends React.Component {
     ),
   };
 
+  _bootstrapAsync = async () => {
+    const id = await AsyncStorage.getItem('id');
+    const token = await AsyncStorage.getItem('token');
+    await this.setState({token: token});
+    await this.setState({id: id});
+  }
+
   async componentDidMount() {
     await this._getData();
     // await this.setState({loaded: true});
   }
   
   _getData = () => {
-    let ds = new ListView.DataSource({
-      rowHasChanged: (r1, r2) => r1 !== r2
-    });
     fetch('http://lastminprod.com/Matcha/public/users', {
       method: 'POST',
       headers: {
@@ -79,7 +92,7 @@ class Messages extends React.Component {
     {
       let trueData = res.data;
       // console.warn(trueData);
-      this.setState({dataSource: ds.cloneWithRows(trueData)});
+      this.setState({dataSource: trueData});
       // console.warn(this.state.dataSource._dataBlob.s1);
 
     })
@@ -88,15 +101,66 @@ class Messages extends React.Component {
     });
   }
 
+  async _setChatid(chat, user, ava, username) {
+      let messageState = {status: 'msg', to: user, token: this.state.token, id: this.state.id, msg: null};
+      await fetch('http://lastminprod.com/Matcha/public/send', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          messageState
+        )
+      })
+      .then((response) => response.json())
+      .then((res) =>
+      {
+        if (res.id) {
+          console.log('found');
+          this.setState({chatid: res.id});
+        } else {
+          console.log(chat);
+          this.setState({chatid: chat});
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+    await this.setState({mate: {f_name: username, avatar: ava, id: user}});
+    await this.props.navigation.navigate('Chat', {
+      uname: this.state.mate.f_name,
+      id: this.state.chatid,
+      mate: this.state.mate,
+    });
+  }
+
   render() {
     return (
-      <View>
+      <View style={{backgroundColor: '#fff'}}>
         <ScrollView>
-          {this.state.dataSource && <ListView
-            style={styles.container}
-            dataSource={this.state.dataSource}
-            renderRow={
-              (data) => <ContactLisItem {...data} />
+          {this.state.dataSource && <FlatList
+            ref={ref => this.ContactList = ref}
+            data={this.state.dataSource}
+            style={ styles.container }
+            extraData={this.state.newContacts}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => {
+              return (
+                <TouchableWithoutFeedback
+                  onPress={() => this._setChatid(-42, item.id, item.avatar, item.f_name)}>
+                  <View style={styles.container}>
+                    <Image source={{ uri: item.avatar ? 
+                      'https://mvaskiv.herokuapp.com/Matcha/uploads/' + item.avatar : 
+                      'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
+                      style={styles.photo} />
+                    <Text style={styles.text}>
+                      {`${item.f_name} ${item.l_name}`}
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              )
+            }
             }/>}
         </ScrollView>
       </View>
@@ -129,7 +193,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Messages
+export default Contacts
 
 
 

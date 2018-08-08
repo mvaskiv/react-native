@@ -3,16 +3,16 @@ import { Platform } from 'react-native';
 import { createSwitchNavigator, createBottomTabNavigator } from 'react-navigation';
 
 import TabBarIcon from '../components/TabBarIcon';
-import HomeScreen from '../screens/HomeScreen';
+import Contacts from '../screens/HomeScreen';
 import Messages from '../screens/Messages';
 
 import SettingsScreen from '../screens/SettingsScreen';
 
-const HomeStack = createSwitchNavigator({
-  Home: HomeScreen,
+const ContactsStack = createSwitchNavigator({
+  Home: Contacts,
 });
 
-HomeStack.navigationOptions = {
+ContactsStack.navigationOptions = {
   tabBarLabel: 'Contacts',
   tabBarIcon: ({ focused }) => (
     <TabBarIcon
@@ -58,7 +58,7 @@ SettingsStack.navigationOptions = {
 export default createBottomTabNavigator({
   // LinksStack: { screen: LinksStack, navigationOptions:{tabBarVisible: false} },
   LinksStack,    
-  HomeStack,
+  ContactsStack,
   SettingsStack,
 }, {
   initialRouteName: 'LinksStack',

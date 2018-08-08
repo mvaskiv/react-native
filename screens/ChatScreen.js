@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ListView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -32,15 +32,12 @@ class Chat extends React.Component {
             data: false,
             newMessage: '',
             start: 0,
-            number: 30,
+            number: 15,
             lastCall: false,
             lastChild: false,
             interval: false,
             dataSource: '',
         };
-        this._data = new ListView.DataSource({
-            rowHasChanged: (r1, r2) => r1 !== r2
-        });
         this._bootstrapAsync();
         this._onScroll = this._onScroll.bind(this);
         this._scrollListener = this._scrollListener.bind(this);
@@ -100,7 +97,6 @@ class Chat extends React.Component {
 
     async _getData() {
         await this.changeView()
-       
         await fetch('http://lastminprod.com/Matcha/public/msghistory', {
             method: 'POST',
             headers: {
@@ -114,17 +110,22 @@ class Chat extends React.Component {
         .then((response) => response.json())
         .then((res) =>
         {
-            this.setState({lastChild: res.data[0]['date']});            
-            let trueData = res.data.reverse();
-            this.setState({dataSource: this._data.cloneWithRows(trueData)});
+            if (res.data[0]) {
+                console.log(res.data);                
+                this.setState({lastChild: res.data[0]['date']});            
+                let trueData = res.data.reverse();
+                this.setState({dataSource: trueData});
+            }
         })
         .catch((error) => {
             console.error(error);
         });
     }
 
-    async _getUpdate() {
-        await fetch('http://lastminprod.com/Matcha/public/msghistory', {
+    _getMoreData = () => {
+        let n = this.state.start + 30;
+        this.setState({start: n});
+        fetch('http://lastminprod.com/Matcha/public/msghistory', {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -137,13 +138,47 @@ class Chat extends React.Component {
         .then((response) => response.json())
         .then((res) =>
         {
+    
+            let a = res.data;
+            if (this.state.dataSource) {
+            
+                a.forEach(msg => {
+                    this.state.dataSource.unshift(msg);     
+                });
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
+        this.setState({updated: true});
+    }
+
+    
+
+    async _getUpdate() {
+        await fetch('http://lastminprod.com/Matcha/public/checkmsg', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+        body: JSON.stringify(
+            this.state
+        )
+        })
+        .then((response) => response.json())
+        .then((res) =>
+        {
+            
             if (res.data) {
                 this.setState({lastChild: res.data[0]['date']});
                 let trueData = res.data.reverse();
                 // this._data = this._data.concat(trueData);
                 // this.setState({dataSource: this.state.dataSource.cloneWithRows(this._data)});
                 // this.state.dataSource.cloneWithRows(trueData);
-                this.setState({dataSource: this.state.dataSource.cloneWithRows(trueData)});        
+                trueData.forEach(msg => {
+                    this.state.dataSource.push(msg);     
+                });
             }
         })
         .catch((error) => {
@@ -161,9 +196,9 @@ class Chat extends React.Component {
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
-        // if (this.state.viewId && !this.state.interval) {
-            this.setState({interval: setInterval(this._getUpdate, 1000)});
-        // }
+        if (this.state.viewId && !this.state.interval) {
+            this.setState({interval: setInterval(this._getUpdate, 2000)});
+        }
     }
 
     componentWillUnmount() {
@@ -181,7 +216,7 @@ class Chat extends React.Component {
         }
         // console.log(this.state);
         // if (this.props.shown && !this.state.interval) {
-        //     this.setState({interval: setInterval(this._getData, 1500)});    
+        //     this.setState({interval: setInterval(this._getUpdate, 1500)});    
         // } else if (!this.props.shown && this.state.interval) {
         //     clearInterval(this.state.interval);
         //     this.setState({interval: false});
@@ -189,6 +224,9 @@ class Chat extends React.Component {
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
+        if (this.state.viewId && !this.state.interval) {
+            this.setState({interval: setInterval(this._getUpdate, 2000)});
+        }
     }
 
     async _scrollListener() {
@@ -243,6 +281,14 @@ class Chat extends React.Component {
         .then((res) =>
         {
             if (res.status === 'ok') {
+                if (res.id !== this.state.viewId) {
+                    // this.setState({viewId: res.id});
+                    this.props.navigation.navigate('Chat', {
+                        uname: this.state.data.f_name,
+                        id: res.id,
+                        mate: this.state.data,
+                      });
+                }
                 return true;
             } else {
                 return false;
@@ -275,15 +321,18 @@ class Chat extends React.Component {
     InputOnFocus(a) {
         if (a === 1) {this.setState({focus: true});}
         else {this.setState({focus: false});}
-        if (this.msglst && this.msglst.lastChild) {
-            this.msglst.lastChild.scrollIntoView({behavior: 'smooth'});
+        if (this.MsgList && this.MsgList.lastChild) {
+            this.MsgList.lastChild.scrollIntoView({behavior: 'smooth'});
         }
     }
+
+    _keyExtractor = (item) => item.id;
+
     render() {
         if (this.state.data) {
             var username = this.state.data['f_name'];
         }
-        if (!this.state.viewId || !this.state.dataSource) {
+        if (!this.state.viewId) {
             return (
                 <View style={ styles.containerpreloader }>
                     <Image source={{ uri: "https://i.gifer.com/WHda.gif"}} style={ styles.preloadergif } />
@@ -293,17 +342,22 @@ class Chat extends React.Component {
         return (
             <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={keyboardOffset} enabled>
                 <ScrollView>
-                    {this.state.dataSource && <ListView
-                        ref={ (ref) => this.msglstc = ref}
-                        style={ styles.msgPane }
-                        dataSource={this.state.dataSource}
-                        onContentSizeChange={ () => {this.msglstc.scrollToEnd({animated: true})}}
-                        renderRow={
-                            (data) => {
-                            return (
-                            <MessagesBody {...data} mate={this.state.data} id={this.state.id} />
-                            )}
-                        }/>}
+                    {this.state.dataSource ? <FlatList
+                        // ListHeaderComponent={}
+                        // inverted={true}
+                        ref={ref => this.MsgList = ref}
+                        // onEndReached={() => this._getMoreData}
+                        // onEndReachedThreshold={0}
+                        onLayout={() => this.MsgList.scrollToEnd({
+                            animated: false,
+                        })}
+                        data={this.state.dataSource}
+                        extraData={this.state}
+                        keyExtractor={item => item.id}
+                        style={styles.msgPane}
+                        renderItem={({ item }) => <MessagesBody {...item} mate={this.state.data} id={this.state.id} />}
+                        /> : <View style={styles.msgPane}></View>
+                    }
                 </ScrollView>
                 <View style={ styles.inputcntbg }>
                     <View style={ styles.inputcnt }>
@@ -330,9 +384,11 @@ class Chat extends React.Component {
 
 const MessagesBody = (props) => {
     // var display =  this.props.id === -42 ? null : this.state.messages.map((message, i) => {
+
         var timestamp = Chat._getMsgTime(props.date);
         return (
             <View
+                key={props.key}
                 ref={msglst => {this.msglst = msglst;}}
                 style={ styles.MSGcontainer }>
                 <Image
@@ -359,7 +415,7 @@ const styles = StyleSheet.create({
       flex: 1,
       width: screenWidth,
       paddingTop: 15,
-      minHeight: Dimensions.get('screen').height - 100,
+      minHeight: Dimensions.get('screen').height - 65,
       paddingBottom: 50,
       backgroundColor: '#ffffff',
     },

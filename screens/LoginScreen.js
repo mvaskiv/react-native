@@ -51,7 +51,7 @@ class LoginScreen extends React.Component {
                     AsyncStorage.setItem('id', id)
                         .then(AsyncStorage.setItem('token', token))
                         .then(AsyncStorage.setItem('uname', uname))
-                        .then(() => App._Login(1));        
+                        // .then(() => App._Login(1));        
                 })
                 .catch((error) => {
                     console.error(error);

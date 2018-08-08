@@ -5,12 +5,14 @@ import {
   Platform,
   ScrollView,
   ListView,
+  FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   Dimensions,
   TouchableHighlight,
+  TouchableWithoutFeedback,
   AsyncStorage,
 } from 'react-native';
 import PostData from '../service/post';
@@ -37,6 +39,7 @@ class Messages extends React.Component {
       id: '',
       dataSource: false,
       token: AsyncStorage.getItem('token'),
+      fetching: false,
     };
     this._bootstrapAsync();
     this._getData = this._getData.bind(this);
@@ -67,10 +70,9 @@ class Messages extends React.Component {
 
   }
 
-
   async _setChatid(chat, user, ava, username) {
     if (chat === -42) {
-      var messageState = {status: 'msg', to: user, token: this.state.id, id: localStorage.getItem('uid'), msg: null};
+      var messageState = {status: 'msg', to: user, token: this.state.token, id: localStorage.getItem('uid'), msg: null};
       let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
       fetch('http://lastminprod.com/Matcha/public/send', {
         method: 'POST',
@@ -86,21 +88,23 @@ class Messages extends React.Component {
       .then((res) =>
       {
         if (res.id) {
-          this._callChat(res.id, user, ava, username);
+          
+          this.setState({chatid: res.id});
+          
         }
         // this.setState({dataSource: ds.cloneWithRows(trueData)});
       })
       .catch((error) => {
         console.error(error);
       });
+    } else {
+      await this.setState({chatid: chat});
     }
-    await this.setState({chatid: chat});
     await this.setState({mate: {f_name: username, avatar: ava, id: user}});
     this._tooglePane();
   }
 
   _getData = () => {
-    let ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     fetch('http://lastminprod.com/Matcha/public/getchats', {
       method: 'POST',
       headers: {
@@ -115,11 +119,12 @@ class Messages extends React.Component {
     .then((res) =>
     {
       let trueData = res.data;
-      this.setState({dataSource: ds.cloneWithRows(trueData)});
+      this.setState({dataSource: trueData});
     })
     .catch((error) => {
       console.error(error);
     });
+    this.setState({ fetching: false })
   }
 
   async _tooglePane() {
@@ -132,6 +137,10 @@ class Messages extends React.Component {
     this.forceUpdate();
   }
 
+  _onRefresh() {
+    this.setState({fetching: true}, function() { this._getData() });
+  }
+
   render() {
     // var SlideMenu = require('../components/slide-menu')
     // , Filters = require('./filters')
@@ -141,19 +150,22 @@ class Messages extends React.Component {
     var deviceScreen= Dimensions.get('window');
     
     return (
-  
           <View style={{backgroundColor: '#fff', flex: 1}}>
-            <ScrollView>
-              {this.state.dataSource && <ListView style={styles.container}
-              dataSource={this.state.dataSource}
-              renderRow={
-                (data) => {
-                  var myid = AsyncStorage.getItem('id');
-                  var chatid = data.id;
-                  var ava = data.data.avatar;
-                  var username = data.data.f_name;
-                  var mateid = data.user1 === myid ? data.user2 : data.user1;
-                  var sender = data.data.lstmsg.sender === myid ? 'You' : data.data.f_name; 
+              {this.state.dataSource && <FlatList
+                onRefresh={() => this._getData()}
+                refreshing={this.state.fetching}
+                // ListHeaderComponent={}
+                // inverted={true}
+                ref={ref => this.ChatList = ref}
+                data={this.state.dataSource}
+                extraData={this.state.newChats}
+                keyExtractor={item => item.id}
+                renderItem={({ item }) => {
+                  var chatid = item.id;
+                  var ava = item.data.avatar;
+                  var username = item.data.f_name;
+                  var mateid = item.user1 === this.state.id ? item.user2 : item.user1;
+                  var sender = item.data.lstmsg.sender === this.state.id ? 'You' : item.data.f_name; 
                 
                   const timeFinder = (t) => {
                       if (t) {
@@ -170,31 +182,31 @@ class Messages extends React.Component {
                       }        
                   }
                   var now = new Date();
-                  var then = new Date(data.data.lstmsg.date)
+                  var then = new Date(item.data.lstmsg.date)
                   var day = then.getUTCDay() === now.getUTCDay() ? false :
                       then.getUTCDay() === now.getUTCDay() - 1 ? 'Yesterday' :
-                          dateFinder(data.data.lstmsg.date);
-                  var date = timeFinder(data.data.lstmsg.date);
+                          dateFinder(item.data.lstmsg.date);
+                  var date = timeFinder(item.data.lstmsg.date);
                 
                   return (
-                      <TouchableHighlight
+                      <TouchableWithoutFeedback
                         onPress={() => this._setChatid(chatid, mateid, ava, username)}>
                           <View style={ styles.MSGcontainer } >
-                            <Image source={{ uri: data.data.avatar ? 
-                            'https://mvaskiv.herokuapp.com/Matcha/uploads/' + data.data.avatar : 
+                            <Image source={{ uri: item.data.avatar ? 
+                            'https://mvaskiv.herokuapp.com/Matcha/uploads/' + item.data.avatar : 
                             'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png' }} 
                             style={styles.pictureSm} />
                               <View style={ styles.msgPrev }>
-                                <Text style={styles.msgName}>{ data.data.f_name }</Text>
-                                <Text style={styles.msgTsender}><Text style={{fontStyle: 'italic'}}>{ sender }</Text>: { data.data.lstmsg.msg }</Text>
+                                <Text style={styles.msgName}>{ item.data.f_name }</Text>
+                                <Text style={styles.msgTsender}><Text style={{fontStyle: 'italic'}}>{ sender }</Text>: { item.data.lstmsg.msg }</Text>
                               </View>
                             <Text style={styles.msgDate}>{ day ? day : date }</Text>
                           </View>
-                        </TouchableHighlight>
+                        </TouchableWithoutFeedback>
                       );
                     }
                   }/>}
-              </ScrollView>
+        
             </View>
           
 
@@ -217,6 +229,14 @@ const styles = StyleSheet.create({
 
     flexDirection: 'row',
     backgroundColor: '#fff',
+  },
+  wrapper: {
+    flex: 1,
+    // width: screenWidth,
+    paddingTop: 15,
+    minHeight: Dimensions.get('screen').height - 65,
+    paddingBottom: 50,
+    backgroundColor: '#ffffff',
   },
   MSGcontainer: {
     flex: 1,
