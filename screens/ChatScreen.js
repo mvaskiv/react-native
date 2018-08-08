@@ -13,6 +13,7 @@ import {
   AsyncStorage,
   Button,
 } from 'react-native';
+import { Notifications } from 'expo';
 import PostData from '../service/post';
 
 var Dimensions = require('Dimensions');
@@ -231,10 +232,23 @@ class Chat extends React.Component {
         if (this.state.viewId && !this.state.interval) {
             this.setState({interval: setInterval(this._getUpdate, 2000)});
         }
+        this._notificationSubscription = Notifications.addListener(this._getUpdate);
     }
+
+//   _handleNotification = (notification) => {
+//     await this.setState({notification: notification});
+//     setTimeout(
+//       function() {
+//         this.setState({notification: false});
+//       }
+//       .bind(this),
+//       4000
+//     );
+//   };
 
     componentWillUnmount() {
         // window.removeEventListener('scroll', this._onScroll, false);
+        // removeListener(this._notificationSubscription);
         clearInterval(this.state.interval);
     }
 

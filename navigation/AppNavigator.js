@@ -9,6 +9,11 @@ export default createStackNavigator({
   // Read more at https://reactnavigation.org/docs/en/auth-flow.html
   Main: {
     screen: MainTabNavigator,
+    // options: {
+    //   props: ({ navigation }) => {
+    //     return {alert: this.navigation.props.params.alert};
+    //   }
+    // },
     navigationOptions: ({ navigation }) => {
       if (navigation.state.index === 0) {
        return {title: 'Messages'}

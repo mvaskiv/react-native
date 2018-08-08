@@ -17,7 +17,7 @@ import {
 } from 'react-native';
 import PostData from '../service/post';
 import Chat from './ChatScreen';
-
+import { Notifications } from 'expo'
 import { HeaderButton } from '../constants/Buttons';
 import SideMenu from 'react-native-side-menu';
 import LoginScreen from './LoginScreen';
@@ -66,9 +66,12 @@ class Messages extends React.Component {
     await this._getData();
   }
 
-  async componentDidMount() {
-
+  componentDidMount() {
+    this._notificationSubscription = Notifications.addListener(this._getData);    
   }
+  componentWillUnmount() {
+    // removeListener(this._notificationSubscription);
+}
 
   async _setChatid(chat, user, ava, username) {
     if (chat === -42) {
@@ -183,7 +186,7 @@ class Messages extends React.Component {
                   }
                   var now = new Date();
                   var then = new Date(item.data.lstmsg.date)
-                  var day = then.getUTCDay() === now.getUTCDay() ? false :
+                  var day = then.getUTCDay() == now.getUTCDay() ? false :
                       then.getUTCDay() === now.getUTCDay() - 1 ? 'Yesterday' :
                           dateFinder(item.data.lstmsg.date);
                   var date = timeFinder(item.data.lstmsg.date);
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
     // borderWidth: 1,
   },
   msgDate: {
-    right: -12,
+    right: -30,
   },
   msgTsender: {
     top: 4,

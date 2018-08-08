@@ -46,14 +46,25 @@ export default class App extends React.Component {
     if (!this.state.chatid) {
       this.setState({showMessages: false});
     }
-    if (this.state.id) {
-      this._notificationSubscription = Notifications.addListener(this._handleNotification);
-    }
+    // if (this.state.id) {
+    //   this._notificationSubscription = Notifications.addListener(this._handleNotification);
+    // }
+    this._notificationSubscription = Notifications.addListener(this._handleNotification);
+  }
+
+  componentWillUnmount() {
+    // removeListener(this._notificationSubscription);
   }
 
   _handleNotification = (notification) => {
     this.setState({notification: notification});
-    console.log(notification);
+    setTimeout(
+      function() {
+        this.setState({notification: false});
+      }
+      .bind(this),
+      4000
+    );
   };
 
   static _hideChat() {
@@ -99,8 +110,9 @@ export default class App extends React.Component {
     } else {
       return (
         <View style={styles.container}>
+          {/* {Platform.OS === 'ios' && <Notification />} */}
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <AppNavigator />
+          <AppNavigator alert={this.state.notification}/>
         </View>
       );
     }
