@@ -230,7 +230,7 @@ class Chat extends React.Component {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
         if (this.state.viewId && !this.state.interval) {
-            this.setState({interval: setInterval(this._getUpdate, 2000)});
+            this.setState({interval: setInterval(this._getUpdate, 30000)});
         }
         this._notificationSubscription = Notifications.addListener(this._getUpdate);
     }

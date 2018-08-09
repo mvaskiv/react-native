@@ -145,11 +145,6 @@ class Messages extends React.Component {
   }
 
   render() {
-    // var SlideMenu = require('../components/slide-menu')
-    // , Filters = require('./filters')
-    // , Products = require('./products');
-
-
     var deviceScreen= Dimensions.get('window');
     
     return (
@@ -209,10 +204,7 @@ class Messages extends React.Component {
                       );
                     }
                   }/>}
-        
             </View>
-          
-
     );
   }
 }
