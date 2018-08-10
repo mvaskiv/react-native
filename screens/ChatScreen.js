@@ -14,6 +14,7 @@ import {
   Button,
 } from 'react-native';
 import { Notifications } from 'expo';
+import { RkAvoidKeyboard } from 'react-native-ui-kitten';
 import PostData from '../service/post';
 
 var Dimensions = require('Dimensions');
@@ -606,6 +607,7 @@ const styles = StyleSheet.create({
         height: 40,
         width: 45,
         marginRight: 15,
+        backgroundColor: 'transparent',
 
       },
       containerpreloader: {
