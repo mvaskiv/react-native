@@ -14,7 +14,7 @@ import {
   Button,
 } from 'react-native';
 import { Notifications } from 'expo';
-import { RkAvoidKeyboard } from 'react-native-ui-kitten';
+import { RkAvoidKeyboard, RkButton, RkTextInput } from 'react-native-ui-kitten';
 import PostData from '../service/post';
 
 var Dimensions = require('Dimensions');
@@ -116,7 +116,7 @@ class Chat extends React.Component {
               .then((response) => response.json())
               .then((res) =>
               {
-                  console.warn(res);
+                //   console.warn(res);
                 if (res.data) {
                     
                     this.setState({fbtoken: res.data});
@@ -157,6 +157,7 @@ class Chat extends React.Component {
     }
 
     _getMoreData = () => {
+        console.log('end');
         let n = this.state.start + 30;
         this.setState({start: n});
         fetch('http://lastminprod.com/Matcha/public/msghistory', {
@@ -172,10 +173,10 @@ class Chat extends React.Component {
         .then((response) => response.json())
         .then((res) =>
         {
-    
+            console.log('on it');
             let a = res.data;
             if (this.state.dataSource) {
-            
+                
                 a.forEach(msg => {
                     this.state.dataSource.unshift(msg);     
                 });
@@ -224,9 +225,9 @@ class Chat extends React.Component {
 
     componentDidMount() {
         if (this.msglst && this.msglst.lastChild) {this.msglst.lastChild.scrollIntoView(!0);}
-        // if (this.props.navigation.state.params.id && (this.props.navigation.state.params.id !== this.state.viewId)) {
-        //     this._getData();
-        // }
+        if (this.props.navigation.state.params.id && (this.props.navigation.state.params.id !== this.state.viewId)) {
+            this._getData();
+        }
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
@@ -415,16 +416,18 @@ class Chat extends React.Component {
         }
         return (
             <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={keyboardOffset} enabled>
-                <ScrollView>
+                <ScrollView style={{transform: [{ scaleY: -1 }]}}>
                     {this.state.dataSource ? <FlatList
                         // ListHeaderComponent={}
                         // inverted={true}
                         ref={ref => this.MsgList = ref}
-                        // onEndReached={() => this._getMoreData}
-                        // onEndReachedThreshold={0}
+                        onEndReached={() => this._getMoreData}
+                        onEndReachedThreshold={150}
+                        refreshing={true}
                         onLayout={() => this.MsgList.scrollToEnd({
                             animated: false,
                         })}
+                        inverted={true}
                         data={this.state.dataSource}
                         extraData={this.state}
                         keyExtractor={item => item.id}
@@ -434,7 +437,26 @@ class Chat extends React.Component {
                     }
                 </ScrollView>
                 <View style={ styles.inputcntbg }>
-                    <View style={ styles.inputcnt }>
+                    <RkTextInput
+                        rkType='rounded'
+                        type='text'
+                        name='newMessage'
+                        style={styles.textInput}
+                        value={ this.state.newMessage }
+                        onChangeText={(newMessage) => this.setState({newMessage})}
+                        placeholder='Your message here' />
+                    <RkButton
+                        rkType='rounded'
+                        style={ styles.sumbitBtn }
+                        onPress={ () => this._sendMesssage() }>
+                        send
+                    </RkButton>
+                        
+
+
+
+
+                    {/* <View style={ styles.inputcnt }>
                         <TextInput
                             type='text'
                             name='newMessage'
@@ -449,7 +471,7 @@ class Chat extends React.Component {
                             style={ styles.sumbitBtn }
                             onPress={ () => this._sendMesssage() }
                         />
-                    </View>
+                    </View> */}
                 </View>
             </KeyboardAvoidingView>
         );
@@ -489,9 +511,10 @@ const styles = StyleSheet.create({
       flex: 1,
       width: screenWidth,
       paddingTop: 15,
-      minHeight: Dimensions.get('screen').height - 65,
+      minHeight: Dimensions.get('screen').height - 162,
       paddingBottom: 50,
       backgroundColor: '#ffffff',
+    //   transform: [{ scaleY: -1 }],
     },
     container: {
         position: 'absolute',
@@ -515,6 +538,7 @@ const styles = StyleSheet.create({
         width: screenWidth,
         flexDirection: 'row',
         backgroundColor: '#fff',
+        transform: [{ scaleY: -1 }],
     },
     photo: {
         top: -13,
@@ -564,21 +588,21 @@ const styles = StyleSheet.create({
     },
     inputcntbg: {
         position: 'absolute',
-        bottom: -1,
-        height: 50,
+        bottom: 0,
+        height: 45,
         width: screenWidth,
         borderWidth: 1,
         borderTopColor: '#dedede',
-        borderBottomColor: '#f7f7f7',
-        borderRightColor: '#f7f7f7',
-        borderLeftColor: '#f7f7f7',
-        backgroundColor: '#f7f7f7',
-
+        borderBottomColor: '#fff',
+        borderRightColor: '#fff',
+        borderLeftColor: '#fff',
+        backgroundColor: '#fff',
+      
     },
     inputcnt: {
         position: 'absolute',
         bottom: 4,
-        height: 40,
+        height: 36,
         width: screenWidth - 8,
         marginHorizontal: 4,
         borderColor: '#aaa',
@@ -592,22 +616,23 @@ const styles = StyleSheet.create({
     },
     textInput: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        width: screenWidth - 55,
-        padding: 10,
-        fontSize: 16,
-        height: 40,
-        borderRadius: 0,
+        left: 5,
+        width: screenWidth - 80,
+        top: -5,
+        // padding: 10,
+        // fontSize: 16,
+        height: 35,
+        // borderRadius: 0
       },
       sumbitBtn: {
-        textAlign: 'right',
+        // textAlign: 'right',
         alignSelf: 'flex-end',
-        fontSize: 16,
-        height: 40,
-        width: 45,
-        marginRight: 15,
-        backgroundColor: 'transparent',
+        // fontSize: 16,
+        height: 35,
+        width: 60,
+        top: 5,
+        marginRight: 5,
+        backgroundColor: '#2386c8',
 
       },
       containerpreloader: {

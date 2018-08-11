@@ -6,7 +6,7 @@ import { AppLoading, Asset, Font, Icon, Notifications } from 'expo';
 // import { initializePush } from './service/firebase';
 import { isSignedIn } from './service/auth';
 import LoginScreen from './screens/LoginScreen';
-import AppNavigator from './navigation/AppNavigator';
+import { AppNavigator, AndroidAppNavigator } from './navigation/AppNavigator';
 import Messages from './screens/Messages';
 import Chat from './screens/ChatScreen';
 
@@ -112,7 +112,8 @@ export default class App extends React.Component {
         <View style={styles.container}>
           {/* {Platform.OS === 'ios' && <Notification />} */}
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
-          <AppNavigator alert={this.state.notification}/>
+          {Platform.OS === 'ios' && <AppNavigator alert={this.state.notification}/>}
+          {Platform.OS === 'android' && <AndroidAppNavigator />}
         </View>
       );
     }

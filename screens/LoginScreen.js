@@ -1,4 +1,5 @@
 import React from 'react';
+import { RkButton, RkTextInput, RkText, RkAvoidKeyboard } from 'react-native-ui-kitten';
 import App from '../App';
 import {
   Image,
@@ -124,13 +125,19 @@ class LoginScreen extends React.Component {
         return (
         <View>
             <Text style={ styles.welcome }>Welcome</Text>
-            <TextInput
+            <RkText
+                rkType='primary'
+                style={ styles.welcome2 }>
+                Please, enter your{"\n"}secure credentials:</RkText>
+            <RkTextInput
+                rkType='rounded'                
                 name='login'
                 onChangeText={(login) => this.setState({login})}
                 style={styles.textInput}
                 placeholder='Public id'
             />
-            <TextInput
+            <RkTextInput
+                rkType='rounded'
                 name='password'
                 secureTextEntry={true}
                 onChangeText={(password) => this.setState({password})}
@@ -138,10 +145,11 @@ class LoginScreen extends React.Component {
                 placeholder='Private id'
             />
             <View style={ styles.container }>
-                <Button
+                <RkButton
+                    rkType='small rounded outline'
                     style={ styles.loginBtn }
-                    onPress={this.login}
-                    title="Log In" />
+                    onPress={this.login}>
+                    Log in</RkButton>
             </View>
         </View>
         );  
@@ -157,16 +165,26 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       top: 100,
       left: 20,
+      marginBottom: 5,
+  },
+  welcome2: {
+    fontSize: 25,
+    lineHeight: 35,
+    // fontWeight: 'bold',
+    top: 100,
+    left: 20,
   },
   textInput: {
-    position: 'relative',
+    // position: 'relative',
     top: 120,
-    marginTop: 10,
-    paddingLeft: 20,
-    fontSize: 18,
-    height: 50,
-    backgroundColor: '#eee',
-    borderRadius: 0,
+    marginTop: 5,
+    marginLeft: 10,
+    marginRight: 10,
+    paddingLeft: 10,
+    // fontSize: 18,
+    height:40,
+    // backgroundColor: '#eee',
+    // borderRadius: 0,
   },
   text: {
     marginLeft: 15,
@@ -184,6 +202,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2386c8',
   },
+  loginBtn: {
+      position: 'absolute',
+      top: -20,
+      right: 15,
+    //   backgroundColor: '#fff',
+    //   color: '#2386c8',
+  }
 });
 
 export default LoginScreen
