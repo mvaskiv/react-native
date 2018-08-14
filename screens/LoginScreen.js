@@ -97,13 +97,17 @@ class LoginScreen extends React.Component {
                 .then((response) => response.json())
                 .then((res) =>
                 {
-                    let id = res.id;
-                    let token = res.token;
-                    let uname = res.uname;
-                    AsyncStorage.setItem('id', id)
-                        .then(AsyncStorage.setItem('token', token))
-                        .then(AsyncStorage.setItem('uname', uname));
-                    this.registerForPushNotificationsAsync(id);      
+                    if (res.id) {
+                        let id = res.id;
+                        let token = res.token;
+                        let uname = res.uname;
+                        AsyncStorage.setItem('id', id)
+                            .then(AsyncStorage.setItem('token', token))
+                            .then(AsyncStorage.setItem('uname', uname));
+                        this.registerForPushNotificationsAsync(id);      
+                    } else {
+                        alert ("Server side error. Please try again later");
+                    }
                 })
                 .catch((error) => {
                     console.error(error);

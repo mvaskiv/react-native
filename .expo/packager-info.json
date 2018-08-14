@@ -3,7 +3,7 @@
   "expoServerPort": null,
   "packagerPort": null,
   "packagerPid": null,
-  "expoServerNgrokUrl": null,
-  "packagerNgrokUrl": null,
-  "ngrokPid": null
+  "expoServerNgrokUrl": "https://qd-fv9.mvaskiv.horus.exp.direct",
+  "packagerNgrokUrl": "https://packager.qd-fv9.mvaskiv.horus.exp.direct",
+  "ngrokPid": 4186
 }

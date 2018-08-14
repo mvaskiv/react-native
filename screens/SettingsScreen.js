@@ -9,9 +9,10 @@ export default class SettingsScreen extends React.Component {
   };
 
   async _Logout() {
-    await AsyncStorage.removeItem('id');
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('uname');
+    // await AsyncStorage.removeItem('id');
+    // await AsyncStorage.removeItem('token');
+    // await AsyncStorage.removeItem('uname');
+    await AsyncStorage.clear();
     () => App._Login(0);
   }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   KeyboardAvoidingView,
+  
   Platform,
   ScrollView,
   FlatList,
@@ -34,13 +35,14 @@ class Chat extends React.Component {
             data: false,
             newMessage: '',
             start: 0,
-            number: 15,
+            number: 30,
             lastCall: false,
             lastChild: false,
             interval: false,
             fbtoken: '',
             myfbtoken: '',
             dataSource: '',
+            dbEnd: false,
         };
         this._bootstrapAsync();
         this._onScroll = this._onScroll.bind(this);
@@ -52,6 +54,7 @@ class Chat extends React.Component {
         this._getUpdate = this._getUpdate.bind(this);
         this.changeView = this.changeView.bind(this);
         this._scrollBtm = this._scrollBtm.bind(this);
+        this._getMoreData = this._getMoreData.bind(this);
         this._msgReceived = this._msgReceived.bind(this);
         Chat._getMsgTime = Chat._getMsgTime.bind(this);        
     }
@@ -146,7 +149,7 @@ class Chat extends React.Component {
             if (res.data[0]) {
                 console.log(res.data);                
                 this.setState({lastChild: res.data[0]['date']});            
-                let trueData = res.data.reverse();
+                let trueData = res.data;
                 this.setState({dataSource: trueData});
             }
         })
@@ -156,36 +159,48 @@ class Chat extends React.Component {
         await this._getFbToken();
     }
 
-    _getMoreData = () => {
-        console.log('end');
-        let n = this.state.start + 30;
-        this.setState({start: n});
-        fetch('http://lastminprod.com/Matcha/public/msghistory', {
-            method: 'POST',
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-            },
-        body: JSON.stringify(
-            this.state
-        )
-        })
-        .then((response) => response.json())
-        .then((res) =>
-        {
-            console.log('on it');
-            let a = res.data;
-            if (this.state.dataSource) {
-                
-                a.forEach(msg => {
-                    this.state.dataSource.unshift(msg);     
-                });
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-        });
-        this.setState({updated: true});
+    async _getMoreData() {
+        // console.log('end');
+        if (this.state.dbEnd) {
+            return ;
+        }
+        const now = (new Date).getTime();
+        if (this.state.lastCall && (now - this.state.lastCall < 1500)) {
+            return ;
+        } else {
+            let n = this.state.start + 30;
+            await this.setState({start: n});
+            fetch('http://lastminprod.com/Matcha/public/msghistory', {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+            body: JSON.stringify(
+                this.state
+            )
+            })
+            .then((response) => response.json())
+            .then((res) =>
+            {   
+                // console.warn(res.dbEnd);
+                if (res.dbEnd) {
+                    this.setState({dbEnd: true});
+                }
+                // console.log('on it');
+                let a = res.data;
+                if (this.state.dataSource) {
+                    a.forEach(msg => {
+                        this.state.dataSource.push(msg);     
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+            this.setState({updated: true});
+            this.setState({lastCall: now});
+        }
     }
 
     
@@ -212,15 +227,16 @@ class Chat extends React.Component {
                 // this.setState({dataSource: this.state.dataSource.cloneWithRows(this._data)});
                 // this.state.dataSource.cloneWithRows(trueData);
                 trueData.forEach(msg => {
-                    this.state.dataSource.push(msg);     
+                    this.state.dataSource.unshift(msg);     
                 });
             }
         })
         .catch((error) => {
             console.error(error);
         });
-        await this.setState({updated: true});
-        // Messages._updatedDialog();
+       
+            // await this.setState({updated: true});
+            // Messages._updatedDialog();
     }
 
     componentDidMount() {
@@ -231,9 +247,9 @@ class Chat extends React.Component {
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
-        if (this.state.viewId && !this.state.interval) {
-            this.setState({interval: setInterval(this._getUpdate, 30000)});
-        }
+        // if (this.state.viewId && !this.state.interval) {
+        //     this.setState({interval: setInterval(this._getUpdate, 30000)});
+        // }
         this._notificationSubscription = Notifications.addListener(this._getUpdate);
     }
 
@@ -260,6 +276,7 @@ class Chat extends React.Component {
         }
         if (this.state.updated) {
             // this._scrollBtm();
+            this._getUpdate();
             this.setState({updated: false});
         }
         // console.log(this.state);
@@ -272,9 +289,9 @@ class Chat extends React.Component {
         // if (this.msglstc) {
         //     this.msglstc.addEventListener('scroll', this._scrollListener);
         // }
-        if (this.state.viewId && !this.state.interval) {
-            this.setState({interval: setInterval(this._getUpdate, 2000)});
-        }
+        // if (this.state.viewId && !this.state.interval) {
+        //     this.setState({interval: setInterval(this._getUpdate, 2000)});
+        // }
     }
 
     async _scrollListener() {
@@ -294,7 +311,6 @@ class Chat extends React.Component {
         var n = this.state.start + 30;
         await this.setState({start: n});
         // await this.setState({number: n});
-      
             await PostData('msghistory', this.state).then((result) => {
             let responseJson = result;
             if (responseJson.data) {
@@ -415,15 +431,19 @@ class Chat extends React.Component {
             )
         }
         return (
-            <KeyboardAvoidingView behavior="position" keyboardVerticalOffset={keyboardOffset} enabled>
-                <ScrollView style={{transform: [{ scaleY: -1 }]}}>
-                    {this.state.dataSource ? <FlatList
+            <View style={{flex:1}}>
+            
+      
+                   {/* {this.state.dataSource ?  */}
+                   <KeyboardAvoidingView style={ styles.maincnt } keyboardVerticalOffset={67} behavior="padding" enabled>
+
+                        <FlatList
                         // ListHeaderComponent={}
                         // inverted={true}
                         ref={ref => this.MsgList = ref}
-                        onEndReached={() => this._getMoreData}
-                        onEndReachedThreshold={150}
-                        refreshing={true}
+                        onEndReached={this._getMoreData}
+                        onEndReachedThreshold={0}
+                        refreshing={!this.state.dbEnd}
                         onLayout={() => this.MsgList.scrollToEnd({
                             animated: false,
                         })}
@@ -433,11 +453,13 @@ class Chat extends React.Component {
                         keyExtractor={item => item.id}
                         style={styles.msgPane}
                         renderItem={({ item }) => <MessagesBody {...item} mate={this.state.data} id={this.state.id} />}
-                        /> : <View style={styles.msgPane}></View>
-                    }
-                </ScrollView>
+                        /> 
+                        {/* : <View style={styles.msgPane}></View>
+                    } */}
+                {/* </ScrollView> */}
                 <View style={ styles.inputcntbg }>
                     <RkTextInput
+                        autoCorrect={false}
                         rkType='rounded'
                         type='text'
                         name='newMessage'
@@ -451,7 +473,7 @@ class Chat extends React.Component {
                         onPress={ () => this._sendMesssage() }>
                         send
                     </RkButton>
-                        
+                </View>
 
 
 
@@ -472,8 +494,10 @@ class Chat extends React.Component {
                             onPress={ () => this._sendMesssage() }
                         />
                     </View> */}
-                </View>
+                
+       
             </KeyboardAvoidingView>
+            </View>
         );
     }
 }
@@ -486,7 +510,8 @@ const MessagesBody = (props) => {
             <View
                 key={props.key}
                 ref={msglst => {this.msglst = msglst;}}
-                style={ styles.MSGcontainer }>
+                style={ styles.MSGcontainer }
+                onLongPress={(e) => {console.log(e)}} >
                 <Image
                     source={{ uri: props.mate.avatar ? 'https://mvaskiv.herokuapp.com/Matcha/uploads/' + props.mate.avatar : 'https://mvaskiv.herokuapp.com/Matcha/uploads/avatar-placeholder.png'}}
                     style={ props.sender === props.id ? styles.nophoto : styles.photo } />
@@ -506,15 +531,18 @@ const MessagesBody = (props) => {
 const styles = StyleSheet.create({
     maincnt: {
         flex: 1,
+        width: screenWidth,
+        // position: 'absolute',
+        // top: 0,
+        // height: 500,
     },
     msgPane: {
       flex: 1,
       width: screenWidth,
-      paddingTop: 15,
-      minHeight: Dimensions.get('screen').height - 162,
-      paddingBottom: 50,
+      paddingTop: 0,
+    //   minHeight: Dimensions.get('screen').height - 95,
       backgroundColor: '#ffffff',
-    //   transform: [{ scaleY: -1 }],
+      transform: [{ scaleY: -1 }],
     },
     container: {
         position: 'absolute',
@@ -538,7 +566,7 @@ const styles = StyleSheet.create({
         width: screenWidth,
         flexDirection: 'row',
         backgroundColor: '#fff',
-        transform: [{ scaleY: -1 }],
+        transform: [{ scaleY: 1 }],
     },
     photo: {
         top: -13,
@@ -587,7 +615,7 @@ const styles = StyleSheet.create({
         color: '#b1b1b1',
     },
     inputcntbg: {
-        position: 'absolute',
+        // position: 'absolute',
         bottom: 0,
         height: 45,
         width: screenWidth,
